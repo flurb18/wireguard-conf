@@ -17,15 +17,26 @@ EOF
 if [ $# -lt 1 ]; then
    usage
    exit 1
-fi   
+fi
+
+unset FOUND
+for peername_used in $(${ROOT_DIR}/list_peernames); do
+    if [ $1 == $peername_used ]; then
+        FOUND=true
+        break
+    fi
+done
+if [ ! $FOUND ]; then
+    echo "Peername not found!"
+    exit 1
+fi
+
 
 cp ${ROOT_DIR}/${wgifname}.conf ${ROOT_DIR}/${wgifname}.conf.bck
 
-sed "/^\s*\[Peer\]\s*# ${1}$/ { :a; N; /^.*\n[\s|\n]*$/! { ba }; d }" ${ROOT_DIR}/wg0.conf > ${ROOT_DIR}/${wgifname}-new.conf
+sed "/^\s*\[Peer\]\s*# ${1}$/ { :a; N; /^.*\n[\s|\n]*$/! { ba }; d }" ${ROOT_DIR}/${wgifname}.conf > ${ROOT_DIR}/${wgifname}-new.conf
 
 cp ${ROOT_DIR}/${wgifname}-new.conf ${ROOT_DIR}/${wgifname}.conf
 rm -f ${ROOT_DIR}/${wgifname}-new.conf
 
 echo "Changes made to ${wgifname}.conf, backed up original at ${ROOT_DIR}/${wgifname}.conf.bck"
-
-rm -f ${ROOT_DIR}/userconfs-${wgifname}/${1}.conf
