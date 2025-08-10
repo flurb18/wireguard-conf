@@ -1,6 +1,11 @@
 #!/bin/bash
 
 ROOT_DIR=$(realpath $(dirname "$0"))
+if [ ! -f ${ROOT_DIR}/config.env ]; then
+    echo "Create a config file at ${ROOT_DIR}/config.env"
+    echo "Starting config file found at ${ROOT_DIR}/config.env.example"
+    exit 1
+fi
 source ${ROOT_DIR}/config.env
 
 usage() {
@@ -30,7 +35,19 @@ for ip_avail in $(${ROOT_DIR}/list_ips --avail); do
     fi
 done
 if [ ! $FOUND ]; then
-    echo "invalid ip!"
+    echo "Invalid ip!"
+    exit 1
+fi
+
+unset FOUND
+for peername_used in $(${ROOT_DIR}/list_peernames); do
+    if [ $peername == $peername_used ]; then
+        FOUND=true
+        break
+    fi
+done
+if [ $FOUND ]; then
+    echo "Peername in use!"
     exit 1
 fi
 
@@ -60,13 +77,14 @@ PrivateKey      = ${key}
 Address         = ${iprange}
 EOF
 
-if $dns; then
+if [ $dns ]; then
     cat >> $CONFDEST <<EOF
 DNS             = ${dns}
-
 EOF
+fi
 
 cat >> $CONFDEST <<EOF
+
 [Peer]
 PublicKey       = ${hub_pub}
 PresharedKey    = ${psk}

@@ -1,6 +1,11 @@
 #!/bin/bash
 
 ROOT_DIR=$(realpath $(dirname "$0"))
+if [ ! -f ${ROOT_DIR}/config.env ]; then
+    echo "Create a config file at ${ROOT_DIR}/config.env"
+    echo "Starting config file found at ${ROOT_DIR}/config.env.example"
+    exit 1
+fi
 source ${ROOT_DIR}/config.env
 
 if [ ${EUID} -ne 0 ]; then
