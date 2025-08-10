@@ -1,0 +1,15 @@
+#!/bin/bash
+
+ROOT_DIR=$(realpath $(dirname "$0"))
+source ${ROOT_DIR}/config.env
+
+if [ ${EUID} -ne 0 ]; then
+    echo "Run as root"
+    exit 1
+fi
+
+cp ${ROOT_DIR}/${wgifname}.conf /etc/wireguard/${wgifname}.conf && \
+    chown root:root /etc/wireguard/${wgifname}.conf && \
+    chmod 600 /etc/wireguard/${wgifname}.conf && \
+    systemctl reload wg-quick@${wgifname} && \
+    echo "New ${wgifname}.conf installed and loaded"

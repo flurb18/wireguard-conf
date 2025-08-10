@@ -1,0 +1,32 @@
+#!/bin/bash
+
+ROOT_DIR=$(realpath $(dirname "$0"))
+source ${ROOT_DIR}/config.env
+
+if [ -f ${ROOT_DIR}/${wgifname}.conf ]; then
+    echo "${wgifname}.conf file found in main directory; move or delete to reinitialize"
+    exit 1
+fi
+
+if [ -d ${ROOT_DIR}/userconfs-${wgifname}/ ]; then
+    echo "userconfs-${wgifname}/ directory found in main directory; move or delete to reinitialize"
+    exit 1
+fi
+
+mkdir -p ${ROOT_DIR}/userconfs-${wgifname}/
+cat > ${ROOT_DIR}/${wgifname}.conf <<EOF
+[Interface]
+Address         = ${serveraddress}/24
+ListenPort      = ${listenport}
+PrivateKey      = $(wg genkey)
+
+EOF
+
+if [ $postenabled ]; then
+    cat >> ${ROOT_DIR}/${wgifname}.conf <<EOF
+PostUp          = ${wgpostup}
+PostDown        = ${wgpostdown}
+
+EOF
+
+echo "${wgifname}.conf initialized"

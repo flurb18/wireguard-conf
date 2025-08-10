@@ -1,0 +1,79 @@
+#!/bin/bash
+
+ROOT_DIR=$(realpath $(dirname "$0"))
+source ${ROOT_DIR}/config.env
+
+usage() {
+    cat <<EOF
+Usage: $0 peername [ip]
+EOF
+}
+
+if [ $# -lt 1 ]; then
+    usage
+    exit 1
+fi
+
+if [ $# == 1 ]; then
+    peername=$1
+    ip=$(${ROOT_DIR}/list_ips --avail | head -n 1)
+else
+    peername=$1
+    ip=$2
+fi
+    
+unset FOUND
+for ip_avail in $(${ROOT_DIR}/list_ips --avail); do
+    if [ $ip == $ip_avail ]; then
+        FOUND=true
+        break
+    fi
+done
+if [ ! $FOUND ]; then
+    echo "invalid ip!"
+    exit 1
+fi
+
+iprange="${ip}/32"
+psk=$(wg genpsk)
+key=$(wg genkey)
+pub=$(echo "$key" | wg pubkey)
+hub_pub=$(grep '^PrivateKey' ${ROOT_DIR}/${wgifname}.conf | cut -d= -f2- | xargs | wg pubkey)
+
+cp ${ROOT_DIR}/${wgifname}.conf ${ROOT_DIR}/${wgifname}.conf.bck
+
+cat >> ${ROOT_DIR}/${wgifname}.conf <<EOF
+[Peer]       # ${peername}
+PublicKey    = ${pub}
+PresharedKey = ${psk}
+AllowedIPs   = ${iprange}
+
+EOF
+
+echo "Changes made to ${wgifname}.conf, backed up original at ${ROOT_DIR}/${wgifname}.conf.bck"
+
+CONFDEST="${ROOT_DIR}/userconfs-${wgifname}/${peername}.conf"
+
+cat > $CONFDEST <<EOF
+[Interface]
+PrivateKey      = ${key}
+Address         = ${iprange}
+EOF
+
+if $dns; then
+    cat >> $CONFDEST <<EOF
+DNS             = ${dns}
+
+EOF
+
+cat >> $CONFDEST <<EOF
+[Peer]
+PublicKey       = ${hub_pub}
+PresharedKey    = ${psk}
+AllowedIPs      = ${defaultallowedips}
+Endpoint        = ${endpointip}:${listenport}
+EOF
+
+chmod 600 $CONFDEST
+
+echo "New config at ${CONFDEST}"

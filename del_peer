@@ -1,0 +1,26 @@
+#!/bin/bash
+
+ROOT_DIR=$(realpath $(dirname "$0"))
+source ${ROOT_DIR}/config.env
+
+usage() {
+    cat <<EOF
+Usage: $0 peername
+EOF
+}
+
+if [ $# -lt 1 ]; then
+   usage
+   exit 1
+fi   
+
+cp ${ROOT_DIR}/${wgifname}.conf ${ROOT_DIR}/${wgifname}.conf.bck
+
+sed "/^\s*\[Peer\]\s*# ${1}$/ { :a; N; /^.*\n[\s|\n]*$/! { ba }; d }" ${ROOT_DIR}/wg0.conf > ${ROOT_DIR}/${wgifname}-new.conf
+
+cp ${ROOT_DIR}/${wgifname}-new.conf ${ROOT_DIR}/${wgifname}.conf
+rm -f ${ROOT_DIR}/${wgifname}-new.conf
+
+echo "Changes made to ${wgifname}.conf, backed up original at ${ROOT_DIR}/${wgifname}.conf.bck"
+
+rm -f ${ROOT_DIR}/userconfs-${wgifname}/${1}.conf

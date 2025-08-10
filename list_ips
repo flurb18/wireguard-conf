@@ -1,0 +1,40 @@
+#!/bin/bash
+
+ROOT_DIR=$(realpath $(dirname "$0"))
+source ${ROOT_DIR}/config.env
+
+usage() {
+    cat <<EOF
+Usage: $0 [--avail | --used]
+EOF
+}
+
+if [ $# -lt 1 ]; then
+    usage
+    exit 1
+fi
+
+serverumask=$(echo ${serveraddress} | cut -d'.' -f-3)
+
+used_ips=$(grep '^AllowedIPs' ${ROOT_DIR}/${wgifname}.conf | cut -d= -f2- | awk -F'[./]' '{print $(NF-1), $0}' | sort -n | cut -d' ' -f2- | cut -d'/' -f1 | tr ' ' '\n' | { echo "${serveraddress}"; cat; } )
+all_ips=$(seq 1 255 | sed 's/^/'${serverumask}'\./' | tr ' ' '\n')
+
+if [ $1 == --avail ]; then
+    for ip in $all_ips; do
+        unset FOUND
+        for used_ip in $used_ips; do
+            if [ $ip == $used_ip ]; then
+                FOUND=true
+                break
+            fi
+        done
+        if [ ! $FOUND ]; then
+            echo $ip
+        fi
+    done
+elif [ $1 == --used ]; then
+    echo $used_ips | tr ' ' '\n'
+else
+    usage
+    exit 1
+fi
