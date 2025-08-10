@@ -8,5 +8,5 @@ if [ ! -f ${ROOT_DIR}/config.env ]; then
 fi
 source ${ROOT_DIR}/config.env
 
-grep '^\[Peer\]' ${ROOT_DIR}/${wgifname}.conf | cut -d'#' -f2 | xargs | tr ' ' '\n'
+grep '^\[Peer\]' ${ROOT_DIR}/${wgifname}.conf | cut -d'#' -f2 | awk '{$1=$1; print}'
 
