@@ -23,12 +23,17 @@ For example, if ```serveraddress=10.8.0.1``` (the default value), the assigned i
 
 The following options are available in config.env :
 
-wgifname: The interface name of the wireguard server, and the name of the server's configuration file. Defaults to ```wg0```.
-serveraddress: The ip address on the wireguard network of the server.
-endpointip: The ip address on the public internet of the server.
-listenport: The port wireguard should listen to.
-dns: Allowed to be unset. If set, should point to a valid DNS server IP.
-defaultallowedips: See wireguard documentation on the ``AllowedIPs`` setting. This is the default value written to your user configurations, by default ```0.0.0.0/0```.
+```wgifname```: The interface name of the wireguard server, and the name of the server's configuration file. Defaults to ```wg0```.
+
+```serveraddress```: The ip address on the wireguard network of the server.
+
+```endpointip```: The ip address on the public internet of the server.
+
+```listenport```: The port wireguard should listen to.
+
+```dns```: Allowed to be unset. If set, should point to a valid DNS server IP.
+
+```defaultallowedips```: See wireguard documentation on the ``AllowedIPs`` setting. This is the default value written to your user configurations, by default ```0.0.0.0/0```.
 
 You may also need a PostUp and PostDown script for your Wireguard server. To enable these set the postenabled variable. 
 Alternatively configure your firewall to forward the appropriate traffic.
