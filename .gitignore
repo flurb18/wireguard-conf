@@ -1,5 +1,5 @@
 *~
 userconfs-*/
-wg0.conf
-wg0.conf.bck
+*.conf
+*.conf.bck
 config.env
