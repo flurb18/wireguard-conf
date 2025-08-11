@@ -13,8 +13,15 @@ if [ ${EUID} -ne 0 ]; then
     exit 1
 fi
 
+set -e
+
 cp ${ROOT_DIR}/${wgifname}.conf /etc/wireguard/${wgifname}.conf && \
     chown root:root /etc/wireguard/${wgifname}.conf && \
-    chmod 600 /etc/wireguard/${wgifname}.conf && \
-    systemctl reload wg-quick@${wgifname} && \
+    chmod 600 /etc/wireguard/${wgifname}.conf
+
+if [[ -n "$updatecommand" ]]; then
+    ${updatecommand}
     echo "New ${wgifname}.conf installed and loaded"
+else
+    echo "New ${wgifname}.conf installed"
+fi

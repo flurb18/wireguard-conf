@@ -77,7 +77,7 @@ PrivateKey      = ${key}
 Address         = ${iprange}
 EOF
 
-if [ $dns ]; then
+if [[ -n $dns ]]; then
     cat >> $CONFDEST <<EOF
 DNS             = ${dns}
 EOF
@@ -89,7 +89,7 @@ cat >> $CONFDEST <<EOF
 PublicKey       = ${hub_pub}
 PresharedKey    = ${psk}
 AllowedIPs      = ${defaultallowedips}
-Endpoint        = ${endpointip}:${listenport}
+Endpoint        = ${endpoint}
 EOF
 
 chmod 600 $CONFDEST
