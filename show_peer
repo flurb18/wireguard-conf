@@ -1,0 +1,36 @@
+#!/bin/bash
+
+ROOT_DIR=$(realpath $(dirname "$0"))
+if [ ! -f ${ROOT_DIR}/config.env ]; then
+    echo "Create a config file at ${ROOT_DIR}/config.env"
+    echo "Starting config file found at ${ROOT_DIR}/config.env.example"
+    exit 1
+fi
+source ${ROOT_DIR}/config.env
+
+usage() {
+    cat <<EOF
+Usage: $0 peername
+EOF
+}
+
+if [ $# -lt 1 ]; then
+    usage
+    exit 1
+fi
+
+peername=$1
+
+unset FOUND
+for peername_used in $(${ROOT_DIR}/list_peernames); do
+    if [ "$peername" == "$peername_used" ]; then
+        FOUND=true
+        break
+    fi
+done
+if [ ! $FOUND ]; then
+    echo "Peername not found"
+    exit 1
+fi
+
+sed -n '/^\[Peer\]\s*#\s*'"${peername}"'$/ { :a; N; /^.*\n[\s|\n]*$/! { ba }; p }' ${ROOT_DIR}/${wgifname}.conf
