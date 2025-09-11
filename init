@@ -35,4 +35,6 @@ PostDown        = ${wgpostdown}
 EOF
 fi
 
+chmod 600 ${ROOT_DIR}/${wgifname}.conf
+
 echo "${wgifname}.conf initialized"
