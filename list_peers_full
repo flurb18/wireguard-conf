@@ -1,0 +1,54 @@
+#!/bin/bash
+
+ROOT_DIR=$(realpath $(dirname "$0"))
+if [ ! -f ${ROOT_DIR}/config.env ]; then
+    echo "Create a config file at ${ROOT_DIR}/config.env"
+    echo "Starting config file found at ${ROOT_DIR}/config.env.example"
+    exit 1
+fi
+source ${ROOT_DIR}/config.env
+
+if [ ${EUID} -ne 0 ]; then
+    echo "Run as root"
+    exit 1
+fi
+
+function displaytime {
+  local T=$1
+  local D=$((T/60/60/24))
+  local H=$((T/60/60%24))
+  local M=$((T/60%60))
+  local S=$((T%60))
+  (( $D > 0 )) && printf '%d days ' $D
+  (( $H > 0 )) && printf '%d hrs ' $H
+  (( $M > 0 )) && printf '%d mins ' $M
+  printf '%d seconds\n' $S
+}
+
+echo "PEERNAME | ALLOWEDIPS | TRANSFER_RECV | TRANSFER_SEND | HANDSHAKE_AGE"
+
+raw_dump=$(wg show ${wgifname} dump | sed 's/[[:space:]]\+/,/g' | cut -d',' -f1,4-7)
+named_dump=""
+for peername in $(${ROOT_DIR}/list_peernames); do
+    peer_pubkey=$(sed -n "/^\s*\[Peer\]\s*#\s*${peername}/{n;s/PublicKey\s*=\s*//;p}" ${ROOT_DIR}/${wgifname}.conf)
+    named_dump+="${peername},"$(echo "${raw_dump}" | grep "${peer_pubkey}" | cut -d',' -f2-5)$'\n'
+done
+named_dump=$(echo "${named_dump}" | sort -t',' -k3,3)
+for line in $named_dump; do
+    peername=$(echo "${line}" | cut -d',' -f1)
+    allowed_ips=$(echo "${line}" | cut -d',' -f2)
+    handshake_time=$(echo "${line}" | cut -d',' -f3)
+    current_time=$(date +%s)
+    handshake_age=$((current_time - handshake_time))
+    if [[ ${handshake_time} == "0" ]]; then
+        handshake_age="Never"
+    else
+        handshake_age=$(displaytime ${handshake_age})" ago"
+    fi
+    transfer_recv=$(echo "${line}" | cut -d',' -f4 | numfmt --to=iec --format="%.2f")
+    transfer_send=$(echo "${line}" | cut -d',' -f5 | numfmt --to=iec --format="%.2f")
+    echo "${peername} ${allowed_ips} ${transfer_recv} ${transfer_send} ${handshake_age}"
+done
+
+
+
