@@ -19,10 +19,10 @@ function displaytime {
   local H=$((T/60/60%24))
   local M=$((T/60%60))
   local S=$((T%60))
-  (( $D > 0 )) && printf '%d days ' $D
-  (( $H > 0 )) && printf '%d hrs ' $H
-  (( $M > 0 )) && printf '%d mins ' $M
-  printf '%d seconds\n' $S
+  (( $D > 0 )) && printf '%dd ' $D
+  (( $H > 0 )) && printf '%dh ' $H
+  (( $M > 0 )) && printf '%dm ' $M
+  printf '%ds\n' $S
 }
 
 echo "PEERNAME | ALLOWEDIPS | TRANSFER_RECV | TRANSFER_SEND | HANDSHAKE_AGE"
